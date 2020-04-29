@@ -72,22 +72,8 @@ public void updateGeometry() {
   box(100000, 2, 100000);
   popMatrix();
 
-  fill(30, 127, 255);
-  pushMatrix();
-  translate(0, 25, 0);
-  shape(model);
-  popMatrix();
-  
-  //for (int x = 0; x < blocks; x++) {
-  //  for (int z = 0; z < blocks; z++) {
-  //    if (world[x][z] != 0) {
-  //      pushMatrix();
-  //      translate(size * x, world[x][z] / 2, size * z);
-  //      box(size, world[x][z], size);
-  //      popMatrix();
-  //    }
-  //  }
-  //}
+  //drawMap();
+  drawObjects();
 }
 
 public void updateCam() {
@@ -222,4 +208,25 @@ void genMap(){
         world[x][z] = walls[x][z];
     }
   }
+}
+
+void drawMap(){
+  for (int x = 0; x < blocks; x++) {
+    for (int z = 0; z < blocks; z++) {
+      if (world[x][z] != 0) {
+        pushMatrix();
+        translate(size * x, world[x][z] / 2, size * z);
+        box(size, world[x][z], size);
+        popMatrix();
+      }
+    }
+  }
+}
+
+void drawObjects(){
+  fill(30, 127, 255);
+  pushMatrix();
+  translate(0, 25, 0);
+  shape(model);
+  popMatrix();
 }
