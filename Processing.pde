@@ -1,8 +1,13 @@
 PShape model;
+PFont Font1;
+
+boolean isVisiting = false;
 
 int x = 300;
 int y = 300;
 int z = 130;
+int H = 900;
+int W = 1600;
 float speed = 1;
 
 float xAngle;
@@ -29,10 +34,14 @@ int size = 64;
 int blocks = 25;
 int[][] walls;
 int[][] world;
+int titleSize = 30;
+int paddingTop = 450 - titleSize*blocks/2, paddingLeft = paddingTop;
+int wallHeight = 250;
 
 void setup() {
   size(1600, 900, P3D);
   model = loadShape("museum.obj");
+  Font1 = createFont("Arial Bold", 26);
   stroke(60, 127, 200);
   strokeWeight(1);
   strokeJoin(ROUND);
@@ -47,22 +56,53 @@ void setup() {
 }
 
 void draw() {
-  background(0, 0, 0);
+  if (isVisiting){
+    background(0, 0, 0);
+    ambientLight(150, 150, 150);
+    lightFalloff(0.25, 0.001, 0.0);
+    //spotLight(127, 127, 127, x - centerX, z, y - centerY, centerX, 0, centerY, PI/1, 1);
+    //spotLight(190, 190, 190, x - centerX, z, y - centerY, centerX, 0, centerY, PI/6, 2);
+    pointLight(
+      100, 100, 100, 
+      x, z, y
+    );
+    
+    updateCam();
+    updateControls();
+    updateGeometry();
   
-  ambientLight(150, 150, 150);
-  lightFalloff(0.25, 0.001, 0.0);
-  //spotLight(127, 127, 127, x - centerX, z, y - centerY, centerX, 0, centerY, PI/1, 1);
-  //spotLight(190, 190, 190, x - centerX, z, y - centerY, centerX, 0, centerY, PI/6, 2);
-  pointLight(
-    100, 100, 100, 
-    x, z, y
-  );
-  
-  updateCam();
-  updateControls();
-  updateGeometry();
-
-  useCam();
+    useCam();
+  } else {
+    int i = (mouseX-paddingLeft)/titleSize, j =  (mouseY-paddingTop)/titleSize;
+    if (i >= 0 && mouseX > paddingLeft && i < blocks && j >= 0 && j < blocks && mouseY > paddingTop){
+      if (leftMouse){
+        world[i][j] = 1;
+      } else if (rightMouse){
+        world[i][j] = 0;
+      }
+    }
+    background(255);
+    int btnX = W / 2 - titleSize + paddingLeft + 70;
+    int btnY = H / 2 - titleSize * 2;
+    rect(btnX, btnY ,titleSize * 4, titleSize * 2);
+    fill(48, 63, 159);
+    textAlign(CENTER, CENTER);
+    textFont(Font1);
+    text("START", btnX + titleSize*2, btnY + titleSize - 3);
+    if (overRect(btnX, btnY ,titleSize * 4, titleSize * 2) && leftMouse) {
+      isVisiting = true;
+    }
+    for(int x = 0; x < blocks; ++x){
+      for(int z = 0; z < blocks; ++z){
+        if (world[x][z] == 1){
+          fill(48, 63, 159);
+        } else if (world[x][z] == 0){
+          fill(232, 234, 246);
+        }
+        rect(x * titleSize + paddingLeft, z * titleSize + paddingTop, titleSize, titleSize);
+      }
+    }
+  }
 }
 
 public void updateGeometry() {
@@ -72,8 +112,8 @@ public void updateGeometry() {
   box(100000, 2, 100000);
   popMatrix();
 
-  //drawMap();
-  drawObjects();
+  drawMap();
+  //drawObjects();
 }
 
 public void updateCam() {
@@ -87,30 +127,6 @@ public void updateCam() {
   centerX = sin(xAngle) * 10;
   centerY = -cos(xAngle) * 10;
   centerZ = tan(yAngle) * 10;
-  //rightX = sin((xAngle + PI/2)) * 5;
-  //rightY = -cos((xAngle + PI/2)) * 5;
-  //leftX = sin((xAngle - PI/2)) * 5;
-  //leftY = -cos((xAngle - PI/2)) * 5;
-  //backX = sin((xAngle - PI)) * 5;
-  //backY = -cos((xAngle - PI)) * 5;
-  
-  //xAngle = map(-mouseX, 0, width, 0, 360);
-  //yAngle = map(mouseY, 0, height, 100, -100);
-  //if (yAngle > 32)
-  //  yAngle = 32;
-  //else if (yAngle < -32)
-  //  yAngle = -32;
-
-  //centerX = sin(xAngle * 0.05f) * 10;
-  //centerY = -cos(xAngle * 0.05f) * 10;
-  //centerZ = tan(yAngle * 0.05f) * 10;
-
-  //rightX = sin((xAngle + 90) * 0.05f) * 10;
-  //rightY = -cos((xAngle + 90) * 0.05f) * 10;
-  //leftX = sin((xAngle - 90) * 0.05f) * 10;
-  //leftY = -cos((xAngle - 90) * 0.05f) * 10;
-  //backX = sin((xAngle - 180) * 0.05f) * 10;
-  //backY = -cos((xAngle - 180) * 0.05f) * 10;
 }
 
 
@@ -157,6 +173,7 @@ public void mouseReleased() {
     leftMouse = false;
   if (mouseButton == RIGHT)
     rightMouse = false;
+  
 }
 
 
@@ -193,19 +210,14 @@ public void updateControls() {
 }
 
 void genMap(){
-  for (int x = 0; x < blocks; x++) {
-    for (int z = 0; z < blocks; z++) {
-      if (x % 8 == 0 || z % 8 == 0){
-          walls[x][z] = 250;
-          if ((x % 8 == 4 || z % 8 == 4) || (x % 8 == 5 || z % 8 == 5))
-            walls[x][z] = 0;
-      }
-    }
-  }
 
   for (int x = 0; x < blocks; x++) {
     for (int z = 0; z < blocks; z++) {
-        world[x][z] = walls[x][z];
+      if (walls[x][z] > 0){
+        world[x][z] = 1;
+      } else {
+        world[x][z] = 0;
+      }
     }
   }
 }
@@ -213,10 +225,10 @@ void genMap(){
 void drawMap(){
   for (int x = 0; x < blocks; x++) {
     for (int z = 0; z < blocks; z++) {
-      if (world[x][z] != 0) {
+      if (world[x][z] == 1) {
         pushMatrix();
-        translate(size * x, world[x][z] / 2, size * z);
-        box(size, world[x][z], size);
+        translate(size * x, wallHeight/2, size * z);
+        box(size, wallHeight, size);
         popMatrix();
       }
     }
@@ -229,4 +241,13 @@ void drawObjects(){
   translate(0, 25, 0);
   shape(model);
   popMatrix();
+}
+
+boolean overRect(int x, int y, int width, int height)  {
+  if (mouseX >= x && mouseX <= x+width && 
+      mouseY >= y && mouseY <= y+height) {
+    return true;
+  } else {
+    return false;
+  }
 }
